@@ -4,8 +4,8 @@ Tracked issues and enhancements for the Wegmans MCP server.
 
 ## Real Issues
 
-- [ ] **Phantom zod dependency** — `zod` is imported in `index.ts` but only resolves via `@modelcontextprotocol/sdk` transitive dep. Add it to `package.json` directly.
-- [ ] **Move build deps to devDependencies** — `@types/node` and `typescript` belong in `devDependencies`, not `dependencies`.
+- [x] **Phantom zod dependency** — `zod` is imported in `index.ts` but only resolves via `@modelcontextprotocol/sdk` transitive dep. Add it to `package.json` directly.
+- [x] **Move build deps to devDependencies** — `@types/node` and `typescript` belong in `devDependencies`, not `dependencies`.
 - [ ] **Algolia credentials duplicated 3x** — `algolia.ts`, `cart.ts:63-64`, `index.ts:76-77` all define the same constants. Centralize in `algolia.ts` and import.
 - [ ] **`get_product_details` duplicates `lookupProduct`** — `index.ts:74-116` reimplements the same Algolia query that `cart.ts:lookupProduct()` already does. Reuse it.
 - [ ] **Dead code: `getMyItems()` in my-items.ts** — Lines 41-81 are never called. Only `queryProductsByIds` is used. Remove or mark explicitly as experimental.
