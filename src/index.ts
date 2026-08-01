@@ -403,9 +403,35 @@ server.tool(
         };
       }
 
-      const data = (await res.json()) as Record<string, unknown>;
+      interface LineItem {
+        name: string;
+        quantity: number;
+        lineItemPrice?: { totalPrice: number };
+      }
+      interface CartData {
+        grocery?: { lineItems?: LineItem[] };
+      }
+
+      const data = (await res.json()) as CartData;
+      const lineItems = data?.grocery?.lineItems ?? [];
+
+      if (lineItems.length === 0) {
+        return { content: [{ type: "text", text: "Your cart is empty." }] };
+      }
+
+      let cartTotal = 0;
+      const lines = lineItems.map((item) => {
+        const lineTotal = (item.lineItemPrice?.totalPrice ?? 0) / 100;
+        cartTotal += lineTotal;
+        const totalStr = `$${lineTotal.toFixed(2)}`;
+        const unitStr = item.quantity > 1 ? ` ($${(lineTotal / item.quantity).toFixed(2)} ea.)` : "";
+        return `• ${item.name} ×${item.quantity}${unitStr} — ${totalStr}`;
+      });
+
+      const header = `**${lineItems.length} items in cart** | Total: $${cartTotal.toFixed(2)}\n`;
+
       return {
-        content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text", text: header + "\n" + lines.join("\n") }],
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
