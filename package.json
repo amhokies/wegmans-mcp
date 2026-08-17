@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "description": "Wegmans grocery store MCP server",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./algolia": "./dist/algolia.js",
+    "./cart": "./dist/cart.js",
+    "./stores": "./dist/stores.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -12,6 +22,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "start": "node dist/index.js",
     "test": "npm run build && node --test tests/*.test.mjs"
   },
