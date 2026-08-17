@@ -9,6 +9,8 @@ const GENERIC_STOPWORDS = new Set([
   "an",
   "and",
   "baked",
+  "can",
+  "count",
   "fresh",
   "for",
   "from",
@@ -17,6 +19,9 @@ const GENERIC_STOPWORDS = new Set([
   "item",
   "items",
   "of",
+  "ounce",
+  "ounces",
+  "oz",
   "pack",
   "pk",
   "store",
@@ -235,6 +240,27 @@ function isCartEquivalent(note: NoteItemDescriptor, cartItem: ExistingLineItem):
   return matchedTokens >= requiredMatches;
 }
 
+export function chooseSearchCandidate(
+  item: string,
+  hits: AlgoliaProduct[]
+): AlgoliaProduct | null {
+  const note = buildNoteDescriptor(item);
+  const meaningfulNoteTokens = new Set(note.tokens.filter((token) => !/^\d+$/.test(token)));
+  const best = hits
+    .map((product) => {
+      const productTokens = new Set(tokenizeMeaningful(buildProductCorpus(product)));
+      const hasMeaningfulOverlap = [...meaningfulNoteTokens].some((token) => productTokens.has(token));
+      return {
+        product,
+        score: scoreCandidate(note, buildProductCorpus(product)),
+        hasMeaningfulOverlap,
+      };
+    })
+    .filter((candidate) => candidate.hasMeaningfulOverlap)
+    .sort((a, b) => b.score - a.score)[0];
+  return best && best.score >= 4 ? best.product : null;
+}
+
 async function findPreferredProduct(
   note: NoteItemDescriptor,
   storeNumber: string,
@@ -271,15 +297,7 @@ async function findPreferredProduct(
   });
 
   const hits = search.results[0]?.hits ?? [];
-  const bestSearchMatch = hits
-    .map((product) => ({ product, score: scoreCandidate(note, buildProductCorpus(product)) }))
-    .sort((a, b) => b.score - a.score)[0];
-
-  if (!bestSearchMatch || bestSearchMatch.score < 4) {
-    return hits[0] ?? null;
-  }
-
-  return bestSearchMatch.product;
+  return chooseSearchCandidate(note.raw, hits);
 }
 
 export async function syncGroceryNote(params: {
